@@ -28,7 +28,7 @@ jobs:
       # uv is the fast, deterministic package manager used for this project.
       # -----------------------------------------------------------------------
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
 
