@@ -12,7 +12,7 @@ name = "recigraph"
 dynamic = ["version"]
 description = "Recipes as structured knowledge, not documents."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "Apache-2.0"
 requires-python = ">=3.13"
 dependencies = [
     "pydantic>=2.0",
