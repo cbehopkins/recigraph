@@ -9,7 +9,9 @@ from importlib.metadata import PackageNotFoundError, version
 
 
 def test_package_is_importable() -> None:
-    import recigraph  # noqa: F401
+    import recigraph
+
+    _ = recigraph.__version__
 
 
 def test_version_attribute_is_a_string() -> None:

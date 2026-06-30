@@ -9,9 +9,12 @@ name: Release Please
 # That tag triggers the separate release.yml workflow which builds and
 # publishes the package.
 on:
-  push:
-    branches:
-      - main
+  # Temporarily disabled for bootstrap phase.
+  # push:
+  #   branches:
+  #     - main
+  # Run manually from the Actions tab when needed.
+  workflow_dispatch:
 
 permissions:
   contents: write       # create tags and update CHANGELOG.md
