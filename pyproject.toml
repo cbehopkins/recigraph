@@ -90,6 +90,7 @@ known-first-party = ["recigraph"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+preview = true
 
 # ---------------------------------------------------------------------------
 # Pyright: static type checking
