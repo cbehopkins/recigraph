@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+# Cancel in-progress runs for the same branch/PR so a force-push does not
+# queue up redundant jobs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint, type-check, test, build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch full history so that setuptools-scm can compute the version
+          # from Git tags.
+          fetch-depth: 0
+
+      # -----------------------------------------------------------------------
+      # uv is the fast, deterministic package manager used for this project.
+      # -----------------------------------------------------------------------
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install project and dev dependencies
+        run: uv sync --all-extras
+
+      # -----------------------------------------------------------------------
+      # Ruff: fast linting and format checking.
+      # Ruff replaces flake8, isort, and black for this project.
+      # -----------------------------------------------------------------------
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      # -----------------------------------------------------------------------
+      # Pyright: strict static type checking.
+      # -----------------------------------------------------------------------
+      - name: Pyright
+        run: uv run pyright
+
+      # -----------------------------------------------------------------------
+      # pytest: unit and integration tests.
+      # -----------------------------------------------------------------------
+      - name: pytest
+        run: uv run pytest
+
+      # -----------------------------------------------------------------------
+      # Build verification: ensure the package can be built before merging.
+      # This catches packaging mis-configurations early.
+      # -----------------------------------------------------------------------
+      - name: Build package
+        run: uv build
+
+      - name: Verify build artefacts
+        run: uv run python -m twine check dist/*

@@ -1,0 +1,59 @@
+# pre-commit hook configuration
+#
+# Hooks run automatically before (pre-commit stage) or after the commit
+# message is written (commit-msg stage).
+#
+# Install the hooks once after cloning:
+#   uv run pre-commit install --hook-type commit-msg --hook-type pre-commit
+#
+# Run all hooks manually without committing:
+#   uv run pre-commit run --all-files
+
+repos:
+  # -------------------------------------------------------------------------
+  # Standard file hygiene hooks maintained by the pre-commit project itself.
+  # -------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+
+  # -------------------------------------------------------------------------
+  # Ruff: lint and format checks run as pre-commit hooks.
+  # These mirror what CI does so problems are caught locally before pushing.
+  # -------------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.0
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  # -------------------------------------------------------------------------
+  # Conventional Commits enforcement on the commit-msg stage.
+  #
+  # Rejects commits whose message does not match the Conventional Commits
+  # specification.  Allowed types match those documented in CONTRIBUTING.md.
+  # -------------------------------------------------------------------------
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.6.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args:
+          # Allowed commit types (must match CONTRIBUTING.md)
+          - feat
+          - fix
+          - docs
+          - refactor
+          - perf
+          - test
+          - build
+          - ci
+          - chore

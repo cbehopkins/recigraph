@@ -1,0 +1,32 @@
+name: Release Please
+
+# Release Please watches for merged PRs that use Conventional Commits.
+# When it finds them it opens (or updates) a Release PR that:
+#   - bumps the version according to SemVer rules
+#   - generates / updates CHANGELOG.md
+#
+# Merging the Release PR causes Release Please to push a Git tag.
+# That tag triggers the separate release.yml workflow which builds and
+# publishes the package.
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write       # create tags and update CHANGELOG.md
+  pull-requests: write  # open and update the Release PR
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          # release-please-config.json and .release-please-manifest.json
+          # must be present at the repository root.
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
