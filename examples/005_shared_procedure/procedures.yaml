@@ -1,0 +1,24 @@
+procedures:
+
+  - id: vanilla_base
+
+    name: Vanilla Base
+
+    inputs:
+      - ingredient.milk
+      - ingredient.sugar
+      - ingredient.vanilla
+
+    steps:
+      - action: procedure.mix
+        inputs:
+          - target: ingredient.milk
+          - target: ingredient.sugar
+          - target: ingredient.vanilla
+
+  - id: vanilla_ice_cream
+
+    name: Vanilla Ice Cream
+
+    steps:
+      - action: procedure.vanilla_base

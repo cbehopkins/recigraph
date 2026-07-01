@@ -1,0 +1,9 @@
+ingredients:
+  - id: milk
+    name: Milk
+
+  - id: sugar
+    name: Sugar
+
+  - id: vanilla
+    name: Vanilla Extract

@@ -15,7 +15,7 @@ from recigraph.loader import (
     parse_procedure,
     parse_procedure_yaml_file,
 )
-from recigraph.model import EntityReference, Procedure
+from recigraph.model import EntityReference, Procedure, Step
 from recigraph.registry import (
     ContainerRegistry,
     EquipmentRegistry,
@@ -71,6 +71,80 @@ def _load_procedures(path: Path) -> list[dict[str, object]]:
     return procedures
 
 
+def _load_equipment(path: Path) -> dict[str, str]:
+    payload = load_yaml_file(path)
+    equipment_raw = _ensure_sequence(payload.get("equipment", ()), field_name="equipment")
+
+    equipment: dict[str, str] = {}
+    for index, item in enumerate(equipment_raw):
+        equipment_item = _ensure_mapping(item, field_name=f"equipment[{index}]")
+        equipment_id = equipment_item.get("id")
+        equipment_name = equipment_item.get("name")
+        if not isinstance(equipment_id, str) or not equipment_id:
+            raise click.ClickException(f"equipment[{index}].id must be a non-empty string")
+        if not isinstance(equipment_name, str) or not equipment_name:
+            raise click.ClickException(f"equipment[{index}].name must be a non-empty string")
+        equipment[equipment_id] = equipment_name
+    return equipment
+
+
+def _infer_entrypoint_procedure_payload(procedures: list[dict[str, object]]) -> dict[str, object]:
+    payload_by_id: dict[str, dict[str, object]] = {}
+    incoming_edge_count: dict[str, int] = {}
+
+    for index, procedure in enumerate(procedures):
+        raw_id = procedure.get("id")
+        if not isinstance(raw_id, str) or not raw_id:
+            raise click.ClickException(f"procedures[{index}].id must be a non-empty string")
+
+        normalized_id = _normalize_procedure_id(raw_id)
+        if normalized_id in payload_by_id:
+            raise click.ClickException(
+                f"Duplicate procedure id '{raw_id}' found in procedures.yaml"
+            )
+
+        payload_by_id[normalized_id] = procedure
+        incoming_edge_count[normalized_id] = 0
+
+    for index, procedure in enumerate(procedures):
+        steps_raw = _ensure_sequence(
+            procedure.get("steps", ()),
+            field_name=f"procedures[{index}].steps",
+        )
+        for step_index, step_obj in enumerate(steps_raw):
+            step = _ensure_mapping(step_obj, field_name=f"procedures[{index}].steps[{step_index}]")
+            action_raw = step.get("action")
+            action_reference = parse_entity_reference(action_raw)
+            if action_reference.domain != "procedure":
+                raise click.ClickException(
+                    f"procedures[{index}].steps[{step_index}].action must be a procedure reference"
+                )
+
+            referenced_id = _normalize_procedure_id(action_reference.identifier)
+            if referenced_id in incoming_edge_count:
+                incoming_edge_count[referenced_id] += 1
+
+    entrypoint_ids = sorted(
+        procedure_id
+        for procedure_id, incoming_count in incoming_edge_count.items()
+        if incoming_count == 0
+    )
+    if len(entrypoint_ids) == 1:
+        return payload_by_id[entrypoint_ids[0]]
+    if not entrypoint_ids:
+        raise click.ClickException(
+            "Could not infer a procedure entrypoint. Use --procedure-id to select one."
+        )
+
+    entrypoint_labels = ", ".join(
+        procedure_id.removeprefix("procedure.") for procedure_id in entrypoint_ids
+    )
+    raise click.ClickException(
+        f"Multiple entrypoint procedures found: {entrypoint_labels}. "
+        "Use --procedure-id to select one."
+    )
+
+
 def _select_procedure_payload(
     procedures: list[dict[str, object]],
     *,
@@ -82,7 +156,7 @@ def _select_procedure_payload(
     if procedure_id is None:
         if len(procedures) == 1:
             return procedures[0]
-        raise click.ClickException("Multiple procedures found. Use --procedure-id to select one.")
+        return _infer_entrypoint_procedure_payload(procedures)
 
     target_id = _normalize_procedure_id(procedure_id)
     for procedure in procedures:
@@ -122,6 +196,9 @@ def _build_procedure_registry_ids(procedures: list[dict[str, object]]) -> set[st
 def _build_registry_set(
     ingredient_ids: Sequence[str],
     procedure_ids: Sequence[str],
+    *,
+    equipment_ids: Sequence[str] = (),
+    container_ids: Sequence[str] = (),
 ) -> RegistrySet:
     ingredient_registry = IngredientRegistry()
     for ingredient_id in ingredient_ids:
@@ -131,11 +208,90 @@ def _build_registry_set(
     for procedure_id in procedure_ids:
         procedure_registry.add(procedure_id, f"procedure:{procedure_id}")
 
+    equipment_registry = EquipmentRegistry()
+    for equipment_id in equipment_ids:
+        equipment_registry.add(equipment_id, f"equipment:{equipment_id}")
+
+    container_registry = ContainerRegistry()
+    for container_id in container_ids:
+        container_registry.add(container_id, f"container:{container_id}")
+
     return RegistrySet(
         ingredient=ingredient_registry,
         procedure=procedure_registry,
-        equipment=EquipmentRegistry(),
-        container=ContainerRegistry(),
+        equipment=equipment_registry,
+        container=container_registry,
+    )
+
+
+def _parse_procedure_map(procedures: list[dict[str, object]]) -> dict[str, Procedure]:
+    procedure_map: dict[str, Procedure] = {}
+    for index, payload in enumerate(procedures):
+        normalized = dict(payload)
+        raw_id = normalized.get("id")
+        if not isinstance(raw_id, str) or not raw_id:
+            raise click.ClickException(f"procedures[{index}].id must be a non-empty string")
+        normalized_id = _normalize_procedure_id(raw_id)
+        normalized["id"] = normalized_id
+        procedure_map[normalized_id] = parse_procedure(normalized)
+    return procedure_map
+
+
+def _dedupe_references(references: list[EntityReference]) -> tuple[EntityReference, ...]:
+    seen: set[str] = set()
+    deduped: list[EntityReference] = []
+    for reference in references:
+        if reference.reference_text in seen:
+            continue
+        seen.add(reference.reference_text)
+        deduped.append(reference)
+    return tuple(deduped)
+
+
+def _expand_shared_procedures(
+    procedure: Procedure,
+    *,
+    procedure_map: dict[str, Procedure],
+    visiting: tuple[str, ...] = (),
+) -> Procedure:
+    if procedure.id in visiting:
+        chain = " -> ".join((*visiting, procedure.id))
+        raise click.ClickException(f"Circular shared-procedure reference detected: {chain}")
+
+    expanded_inputs: list[EntityReference] = list(procedure.inputs)
+    expanded_outputs: list[EntityReference] = list(procedure.outputs)
+    expanded_steps: list[Step] = []
+    next_visiting = (*visiting, procedure.id)
+
+    for step in procedure.steps:
+        referenced_id = _normalize_procedure_id(step.action.identifier)
+        referenced_procedure = procedure_map.get(referenced_id)
+
+        if (
+            referenced_procedure is not None
+            and not step.inputs
+            and not step.outputs
+            and step.context is None
+            and referenced_id != procedure.id
+        ):
+            resolved = _expand_shared_procedures(
+                referenced_procedure,
+                procedure_map=procedure_map,
+                visiting=next_visiting,
+            )
+            expanded_inputs.extend(resolved.inputs)
+            expanded_outputs.extend(resolved.outputs)
+            expanded_steps.extend(resolved.steps)
+            continue
+
+        expanded_steps.append(step)
+
+    return procedure.model_copy(
+        update={
+            "inputs": _dedupe_references(expanded_inputs),
+            "outputs": _dedupe_references(expanded_outputs),
+            "steps": tuple(expanded_steps),
+        }
     )
 
 
@@ -145,17 +301,27 @@ def _load_compilation_inputs(
     procedure_id: str | None,
     ingredients_file: str,
     procedures_file: str,
-) -> tuple[Procedure, dict[str, str], str, RegistrySet]:
+    equipment_file: str,
+) -> tuple[Procedure, dict[str, str], dict[str, str], str, RegistrySet]:
     ingredients_path = example_dir / ingredients_file
     procedures_path = example_dir / procedures_file
+    fallback_procedure_path = example_dir / "procedure.yaml"
+    equipment_path = example_dir / equipment_file
 
     if not ingredients_path.exists():
         raise click.ClickException(f"Ingredients file not found: {ingredients_path}")
+    if (
+        not procedures_path.exists()
+        and procedures_file == "procedures.yaml"
+        and fallback_procedure_path.exists()
+    ):
+        procedures_path = fallback_procedure_path
     if not procedures_path.exists():
         raise click.ClickException(f"Procedures file not found: {procedures_path}")
 
     ingredients = _load_ingredients(ingredients_path)
     procedures = _load_procedures(procedures_path)
+    equipment = _load_equipment(equipment_path) if equipment_path.exists() else {}
     selected_payload = _select_procedure_payload(procedures, procedure_id=procedure_id)
     selected_payload = dict(selected_payload)
 
@@ -165,12 +331,17 @@ def _load_compilation_inputs(
     normalized_id = _normalize_procedure_id(selected_id)
     selected_payload["id"] = normalized_id
 
-    procedure = parse_procedure(selected_payload)
+    procedure_map = _parse_procedure_map(procedures)
+    selected_procedure = procedure_map.get(normalized_id)
+    if selected_procedure is None:
+        raise click.ClickException(f"Procedure '{normalized_id}' was not found in procedures data")
+    procedure = _expand_shared_procedures(selected_procedure, procedure_map=procedure_map)
     registries = _build_registry_set(
         ingredient_ids=tuple(ingredients.keys()),
         procedure_ids=tuple(sorted(_build_procedure_registry_ids(procedures))),
+        equipment_ids=tuple(equipment.keys()),
     )
-    return procedure, ingredients, normalized_id, registries
+    return procedure, ingredients, equipment, normalized_id, registries
 
 
 def _collect_references_for_registry(procedure: Procedure) -> tuple[EntityReference, ...]:
@@ -259,6 +430,13 @@ def main() -> None:
     help="Procedure file relative to EXAMPLE_DIR.",
 )
 @click.option(
+    "--equipment-file",
+    type=str,
+    default="equipment.yaml",
+    show_default=True,
+    help="Optional equipment file relative to EXAMPLE_DIR.",
+)
+@click.option(
     "--output-file",
     type=click.Path(file_okay=True, dir_okay=False, path_type=Path),
     default=None,
@@ -269,20 +447,26 @@ def render_command(
     procedure_id: str | None,
     ingredients_file: str,
     procedures_file: str,
+    equipment_file: str,
     output_file: Path | None,
 ) -> None:
     """Compile and render a two-file recipe example as plain text."""
 
     try:
-        procedure, ingredients, _, registries = _load_compilation_inputs(
+        procedure, ingredients, equipment, _, registries = _load_compilation_inputs(
             example_dir,
             procedure_id=procedure_id,
             ingredients_file=ingredients_file,
             procedures_file=procedures_file,
+            equipment_file=equipment_file,
         )
 
         compile_procedure(procedure, registries=registries)
-        rendered_text = render_procedure_text(procedure, ingredient_names=ingredients)
+        rendered_text = render_procedure_text(
+            procedure,
+            ingredient_names=ingredients,
+            equipment_names=equipment,
+        )
     except ReferenceResolutionError as error:
         raise click.ClickException(str(error)) from error
     except (TypeError, ValueError) as error:
@@ -313,6 +497,13 @@ def render_command(
     help="Procedure file relative to EXAMPLE_DIR.",
 )
 @click.option(
+    "--equipment-file",
+    type=str,
+    default="equipment.yaml",
+    show_default=True,
+    help="Optional equipment file relative to EXAMPLE_DIR.",
+)
+@click.option(
     "--output-file",
     type=click.Path(file_okay=True, dir_okay=False, path_type=Path),
     default=None,
@@ -323,16 +514,18 @@ def compile_command(
     procedure_id: str | None,
     ingredients_file: str,
     procedures_file: str,
+    equipment_file: str,
     output_file: Path | None,
 ) -> None:
     """Compile a two-file recipe example and emit graph metadata."""
 
     try:
-        procedure, _, normalized_procedure_id, registries = _load_compilation_inputs(
+        procedure, _, _, normalized_procedure_id, registries = _load_compilation_inputs(
             example_dir,
             procedure_id=procedure_id,
             ingredients_file=ingredients_file,
             procedures_file=procedures_file,
+            equipment_file=equipment_file,
         )
         output = compile_procedure(procedure, registries=registries)
     except ReferenceResolutionError as error:

@@ -16,6 +16,9 @@ def test_render_examples_match_expected_output_files() -> None:
     examples = (
         "001_hello_world",
         "002_simple",
+        "003_equipment",
+        "004_substitution",
+        "005_shared_procedure",
     )
 
     for example_name in examples:

@@ -85,7 +85,7 @@ procedures:
     assert "MISSING_REFERENCE" in result.output
 
 
-def test_render_requires_procedure_id_when_multiple_procedures_exist(tmp_path: Path) -> None:
+def test_render_requires_procedure_id_when_multiple_entrypoints_exist(tmp_path: Path) -> None:
     runner = CliRunner()
     example_dir = tmp_path / "multi"
     example_dir.mkdir()
@@ -120,7 +120,40 @@ def test_render_requires_procedure_id_when_multiple_procedures_exist(tmp_path: P
     result = runner.invoke(main, ["render", str(example_dir)])
 
     assert result.exit_code != 0
-    assert "Multiple procedures found" in result.output
+    assert "Multiple entrypoint procedures found" in result.output
+
+
+def test_render_infers_single_entrypoint_when_multiple_procedures_exist(tmp_path: Path) -> None:
+    runner = CliRunner()
+    example_dir = tmp_path / "infer_entrypoint"
+    example_dir.mkdir()
+
+    (example_dir / "ingredients.yaml").write_text(
+        "ingredients:\n  - id: water\n    name: Water\n",
+        encoding="utf-8",
+    )
+    (example_dir / "procedures.yaml").write_text(
+        "procedures:\n"
+        "  - id: base_recipe\n"
+        "    name: Base Recipe\n"
+        "    inputs:\n"
+        "      - ingredient.water\n"
+        "    steps:\n"
+        "      - action: procedure.mix\n"
+        "        inputs:\n"
+        "          - target: ingredient.water\n"
+        "  - id: main_recipe\n"
+        "    name: Main Recipe\n"
+        "    steps:\n"
+        "      - action: procedure.base_recipe\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(main, ["render", str(example_dir)])
+
+    assert result.exit_code == 0, result.output
+    assert result.output.startswith("Main Recipe")
+    assert "Mix water." in result.output
 
 
 def test_render_can_select_specific_procedure_from_multi_file(tmp_path: Path) -> None:

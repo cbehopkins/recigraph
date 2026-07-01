@@ -1,0 +1,6 @@
+ingredients:
+  - id: tea_bag
+    name: Tea Bag
+
+  - id: water
+    name: Water

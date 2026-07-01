@@ -90,6 +90,15 @@ uv run pytest tests/model/test_ingredient.py::test_unit_required
 uv run pytest --cov
 ```
 
+Text-rendering behavior is defined by [formatting.md](formatting.md) and validated by golden example outputs.
+
+When a procedures file contains multiple procedures, the CLI now infers a default entrypoint from procedure references. If there is exactly one unreferenced root procedure, it is selected automatically. Use `--procedure-id` only when multiple roots exist or when you need to override the inferred entrypoint.
+
+```sh
+# Run the plain-text output golden tests
+uv run pytest tests/cli/test_example_output_golden.py
+```
+
 ---
 
 ## Linting and formatting
