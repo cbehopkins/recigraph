@@ -11,6 +11,7 @@ from recigraph.resolver.resolver import (
     resolve_procedure_references,
     resolve_reference,
 )
+from recigraph.resolver.step_engine import apply_step
 
 __all__ = [
     "ReferenceResolutionError",
@@ -18,6 +19,7 @@ __all__ = [
     "ResolutionIssue",
     "ResolvedProcedureReferences",
     "ResolvedReference",
+    "apply_step",
     "default_registry_set",
     "initialize_graph_state",
     "resolve_procedure_references",
