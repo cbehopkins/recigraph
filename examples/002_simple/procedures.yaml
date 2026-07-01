@@ -1,0 +1,23 @@
+procedures:
+  - id: simple_coffee
+
+    name: Simple Coffee
+
+    inputs:
+      - ingredient.water
+      - ingredient.coffee
+      - ingredient.sugar
+
+    outputs:
+      - ingredient.water
+
+    steps:
+      - action: procedure.boil
+        inputs:
+          - target: ingredient.water
+
+      - action: procedure.mix
+        inputs:
+          - target: ingredient.water
+          - target: ingredient.coffee
+          - target: ingredient.sugar
