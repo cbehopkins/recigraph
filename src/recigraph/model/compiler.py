@@ -15,6 +15,7 @@ class StepExecutionRecord(BaseModel):
     input_graph_snapshot_ref: str = Field(min_length=1)
     applied_bindings: tuple[ReferenceBinding, ...] = ()
     output_graph_snapshot_ref: str = Field(min_length=1)
+    transformation_summary: str = Field(min_length=1)
     transformations_applied: tuple[str, ...] = ()
 
 

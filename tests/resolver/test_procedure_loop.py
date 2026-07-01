@@ -71,8 +71,10 @@ def test_run_procedure_loop_applies_steps_sequentially() -> None:
     assert trace[1].step_id == "heat_base"
     assert trace[0].input_graph_snapshot_ref == "G0"
     assert trace[0].output_graph_snapshot_ref == "G1"
+    assert trace[0].transformation_summary.startswith("action=procedure.mix;")
     assert trace[1].input_graph_snapshot_ref == "G1"
     assert trace[1].output_graph_snapshot_ref == "G2"
+    assert trace[1].transformation_summary.startswith("action=procedure.heat;")
 
 
 def test_run_procedure_loop_does_not_mutate_initial_graph() -> None:

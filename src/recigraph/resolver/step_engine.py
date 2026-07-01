@@ -88,6 +88,22 @@ def _binding_transformation_notes(bindings: tuple[ReferenceBinding, ...]) -> tup
     return tuple(notes)
 
 
+def _build_transformation_summary(
+    *,
+    action_reference_text: str,
+    bindings: tuple[ReferenceBinding, ...],
+    outputs: tuple[EntityReference, ...],
+    transformations: tuple[str, ...],
+) -> str:
+    output_summary = ",".join(output.reference_text for output in outputs) if outputs else "none"
+    return (
+        f"action={action_reference_text}; "
+        f"bindings={len(bindings)}; "
+        f"outputs={output_summary}; "
+        f"transformations={len(transformations)}"
+    )
+
+
 def apply_step(
     input_graph: GraphState,
     step: Step,
@@ -134,12 +150,19 @@ def apply_step(
             "outputs:" + ",".join(output.reference_text for output in step.outputs)
         )
     transformations = tuple(transformation_items)
+    transformation_summary = _build_transformation_summary(
+        action_reference_text=step.action.reference_text,
+        bindings=step.inputs,
+        outputs=step.outputs,
+        transformations=transformations,
+    )
 
     record = StepExecutionRecord(
         step_id=step_id,
         input_graph_snapshot_ref=input_graph.snapshot_id,
         applied_bindings=step.inputs,
         output_graph_snapshot_ref=output_graph.snapshot_id,
+        transformation_summary=transformation_summary,
         transformations_applied=transformations,
     )
 

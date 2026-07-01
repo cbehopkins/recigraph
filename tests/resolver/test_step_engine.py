@@ -62,6 +62,7 @@ def test_apply_step_creates_next_graph_and_trace_record() -> None:
     assert record.step_id == "mix_base"
     assert record.input_graph_snapshot_ref == "G0"
     assert record.output_graph_snapshot_ref == "G1"
+    assert record.transformation_summary.startswith("action=procedure.mix;")
     assert EntityReference(domain="ingredient", identifier="base_mix") in output_graph.entities
 
 
@@ -91,6 +92,7 @@ def test_apply_step_applies_local_substitution_without_mutating_input_graph() ->
 
     assert input_graph.entities == (EntityReference(domain="ingredient", identifier="whole_milk"),)
     assert output_graph.entities == (EntityReference(domain="ingredient", identifier="oat_milk"),)
+    assert "bindings=1" in record.transformation_summary
     assert any(item.startswith("substitute:") for item in record.transformations_applied)
 
 

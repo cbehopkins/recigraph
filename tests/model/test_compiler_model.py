@@ -32,6 +32,7 @@ def test_step_execution_record_tracks_step_local_bindings() -> None:
         input_graph_snapshot_ref="g0",
         applied_bindings=(binding,),
         output_graph_snapshot_ref="g1",
+        transformation_summary="action=procedure.mix; bindings=1; outputs=none; transformations=1",
         transformations_applied=("substitute whole milk",),
     )
 
@@ -47,6 +48,9 @@ def test_compiler_output_wraps_final_graph_and_trace() -> None:
                 input_graph_snapshot_ref="g0",
                 applied_bindings=(),
                 output_graph_snapshot_ref="g1",
+                transformation_summary=(
+                    "action=procedure.mix; bindings=0; outputs=none; transformations=0"
+                ),
                 transformations_applied=(),
             ),
         ),
