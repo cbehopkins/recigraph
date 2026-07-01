@@ -1,6 +1,7 @@
 """Reference resolution utilities for ReciGraph."""
 
 from recigraph.resolver.graph_init import initialize_graph_state
+from recigraph.resolver.procedure_loop import run_procedure_loop, run_resolved_procedure_loop
 from recigraph.resolver.resolver import (
     ReferenceResolutionError,
     RegistrySet,
@@ -24,4 +25,6 @@ __all__ = [
     "initialize_graph_state",
     "resolve_procedure_references",
     "resolve_reference",
+    "run_procedure_loop",
+    "run_resolved_procedure_loop",
 ]
