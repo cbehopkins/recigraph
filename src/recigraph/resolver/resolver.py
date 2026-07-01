@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from recigraph.model import Composition, EntityReference, Procedure
+from recigraph.model import Composition, EntityReference, GraphEntityIdentity, Procedure
 from recigraph.registry import (
     ContainerRegistry,
     EntityRegistry,
@@ -28,6 +28,7 @@ class ResolvedReference:
 
     path: str
     reference: EntityReference
+    identity: GraphEntityIdentity
     entity: str
     version: str | int | None
 
@@ -121,6 +122,7 @@ def resolve_reference(
     return ResolvedReference(
         path=path,
         reference=reference,
+        identity=GraphEntityIdentity.from_reference(reference),
         entity=entity,
         version=reference.version,
     )

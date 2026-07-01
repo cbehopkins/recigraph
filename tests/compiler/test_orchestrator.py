@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from recigraph.compiler import compile, compile_file
+from recigraph.compiler import (
+    COMPILATION_PASS_SEQUENCE,
+    _run_compilation_passes_with_context,
+    compile,
+    compile_file,
+)
 from recigraph.loader import parse_procedure_yaml_text
 from recigraph.model import CompilationContext, CompilerOutput
 from recigraph.registry import (
@@ -108,6 +113,18 @@ def test_compile_and_compile_procedure_produce_same_output() -> None:
     output_from_procedure = compile_procedure(procedure, registries=registries)
 
     assert output_from_yaml == output_from_procedure
+
+
+def test_compilation_pass_trace_matches_expected_sequence() -> None:
+    procedure = parse_procedure_yaml_text(_valid_yaml())
+
+    _, context = _run_compilation_passes_with_context(
+        procedure,
+        registries=_registry_set(),
+        initial_trace=("parse",),
+    )
+
+    assert context.compilation_trace == COMPILATION_PASS_SEQUENCE
 
 
 def test_compile_raises_validation_error_for_empty_steps() -> None:

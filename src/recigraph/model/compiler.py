@@ -30,6 +30,7 @@ class CompilationContext(BaseModel):
     registries: Any
     config: tuple[tuple[str, str], ...] = ()
     diagnostics: tuple[str, ...] = ()
+    compilation_trace: tuple[str, ...] = ()
     current_graph: GraphState | None = None
     trace: tuple[StepExecutionRecord, ...] = ()
     procedure: Procedure | None = None
