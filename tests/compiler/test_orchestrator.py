@@ -60,6 +60,12 @@ def test_compile_returns_compiler_output() -> None:
     assert isinstance(output, CompilerOutput)
     assert output.final_graph.snapshot_id == "G2"
     assert len(output.trace) == 2
+    assert output.trace[0].transformation_summary == (
+        "action=procedure.mix; bindings=0; outputs=ingredient.base_mix; transformations=2"
+    )
+    assert output.trace[1].transformation_summary == (
+        "action=procedure.heat; bindings=0; outputs=ingredient.heated_mix; transformations=2"
+    )
 
 
 def test_compile_is_deterministic_for_same_input() -> None:

@@ -58,3 +58,25 @@ def test_compiler_output_wraps_final_graph_and_trace() -> None:
 
     assert output.final_graph.snapshot_id == "g1"
     assert len(output.trace) == 1
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {
+            "step_id": "",
+            "input_graph_snapshot_ref": "g0",
+            "output_graph_snapshot_ref": "g1",
+            "transformation_summary": "ok",
+        },
+        {
+            "step_id": "mix_base",
+            "input_graph_snapshot_ref": "g0",
+            "output_graph_snapshot_ref": "g1",
+            "transformation_summary": "",
+        },
+    ],
+)
+def test_step_execution_record_rejects_empty_required_fields(payload: dict[str, str]) -> None:
+    with pytest.raises(ValidationError):
+        StepExecutionRecord.model_validate(payload)
