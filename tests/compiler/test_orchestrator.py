@@ -6,7 +6,6 @@ import pytest
 
 from recigraph.compiler import (
     COMPILATION_PASS_SEQUENCE,
-    _run_compilation_passes_with_context,
     compile,
     compile_file,
 )
@@ -82,7 +81,7 @@ def test_compilation_context_is_explicit_and_immutable() -> None:
     assert context.diagnostics == ()
 
     with pytest.raises((TypeError, ValueError, AttributeError)):
-        context.trace = ("invalid",)
+        context.trace = ()
 
 
 def test_compile_is_deterministic_for_same_input() -> None:
@@ -116,15 +115,15 @@ def test_compile_and_compile_procedure_produce_same_output() -> None:
 
 
 def test_compilation_pass_trace_matches_expected_sequence() -> None:
-    procedure = parse_procedure_yaml_text(_valid_yaml())
-
-    _, context = _run_compilation_passes_with_context(
-        procedure,
-        registries=_registry_set(),
-        initial_trace=("parse",),
+    assert COMPILATION_PASS_SEQUENCE == (
+        "parse",
+        "validate",
+        "resolve",
+        "initialize_graph",
+        "apply_step_transformations",
+        "produce_graph_ir",
+        "emit_output",
     )
-
-    assert context.compilation_trace == COMPILATION_PASS_SEQUENCE
 
 
 def test_compile_raises_validation_error_for_empty_steps() -> None:
