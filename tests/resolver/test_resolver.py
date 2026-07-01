@@ -55,6 +55,8 @@ def test_resolve_reference_routes_to_correct_registry() -> None:
 
     assert resolved.entity == "equipment:blender"
     assert resolved.path == "step.action"
+    assert resolved.identity.domain == "equipment"
+    assert resolved.identity.identifier == "blender"
 
 
 def test_resolve_reference_keeps_version_as_v1_stub() -> None:
@@ -66,6 +68,7 @@ def test_resolve_reference_keeps_version_as_v1_stub() -> None:
 
     assert resolved.entity == "ingredient:whole_milk"
     assert resolved.version == 2
+    assert resolved.identity.version == 2
 
 
 def test_resolve_reference_raises_for_missing_identifier() -> None:

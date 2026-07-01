@@ -64,6 +64,8 @@ def test_apply_step_creates_next_graph_and_trace_record() -> None:
     assert record.output_graph_snapshot_ref == "G1"
     assert record.transformation_summary.startswith("action=procedure.mix;")
     assert EntityReference(domain="ingredient", identifier="base_mix") in output_graph.entities
+    assert output_graph.relationships
+    assert output_graph.provenance == (("mix_base", "procedure.mix"),)
 
 
 def test_apply_step_applies_local_substitution_without_mutating_input_graph() -> None:

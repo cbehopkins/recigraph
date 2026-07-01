@@ -47,6 +47,8 @@ def test_initialize_graph_state_builds_g0_from_procedure_inputs() -> None:
     assert graph.snapshot_id == "G0"
     assert graph.entities == procedure.inputs
     assert graph.derived_entities == ()
+    assert len(graph.resolved_entities) == 2
+    assert graph.resolved_entities[0].domain == "ingredient"
 
 
 def test_initialize_graph_state_writes_entity_map_metadata() -> None:
@@ -63,6 +65,7 @@ def test_initialize_graph_state_writes_entity_map_metadata() -> None:
     assert metadata["source_procedure_id"] == "procedure.vanilla_base"
     assert metadata["input_count"] == "1"
     assert metadata["entity_map"] == "ingredient.whole_milk=ingredient:whole_milk"
+    assert graph.resolved_entities[0].identifier == "whole_milk"
 
 
 def test_initialize_graph_state_handles_empty_inputs() -> None:
@@ -77,4 +80,5 @@ def test_initialize_graph_state_handles_empty_inputs() -> None:
 
     assert graph.entities == ()
     assert graph.derived_entities == ()
+    assert graph.resolved_entities == ()
     assert metadata["input_count"] == "0"

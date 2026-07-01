@@ -4,8 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from recigraph.compiler import compile, compile_file
-from recigraph.model import CompilerOutput
+from recigraph.compiler import (
+    COMPILATION_PASS_SEQUENCE,
+    compile,
+    compile_file,
+)
+from recigraph.loader import parse_procedure_yaml_text
+from recigraph.model import CompilationContext, CompilerOutput
 from recigraph.registry import (
     ContainerRegistry,
     EquipmentRegistry,
@@ -68,6 +73,17 @@ def test_compile_returns_compiler_output() -> None:
     )
 
 
+def test_compilation_context_is_explicit_and_immutable() -> None:
+    context = CompilationContext(registries=_registry_set())
+
+    assert context.current_graph is None
+    assert context.trace == ()
+    assert context.diagnostics == ()
+
+    with pytest.raises((TypeError, ValueError, AttributeError)):
+        context.trace = ()
+
+
 def test_compile_is_deterministic_for_same_input() -> None:
     output_a = compile(_valid_yaml(), registries=_registry_set())
     output_b = compile(_valid_yaml(), registries=_registry_set())
@@ -83,6 +99,31 @@ def test_compile_file_compiles_from_yaml_path(tmp_path: Path) -> None:
 
     assert output.final_graph.snapshot_id == "G2"
     assert output.trace[0].step_id == "mix_base"
+
+
+def test_compile_and_compile_procedure_produce_same_output() -> None:
+    from recigraph.compiler import compile_procedure
+
+    registries = _registry_set()
+    yaml_input = _valid_yaml()
+    output_from_yaml = compile(yaml_input, registries=registries)
+    procedure = parse_procedure_yaml_text(yaml_input)
+
+    output_from_procedure = compile_procedure(procedure, registries=registries)
+
+    assert output_from_yaml == output_from_procedure
+
+
+def test_compilation_pass_trace_matches_expected_sequence() -> None:
+    assert COMPILATION_PASS_SEQUENCE == (
+        "parse",
+        "validate",
+        "resolve",
+        "initialize_graph",
+        "apply_step_transformations",
+        "produce_graph_ir",
+        "emit_output",
+    )
 
 
 def test_compile_raises_validation_error_for_empty_steps() -> None:

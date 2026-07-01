@@ -15,6 +15,7 @@ def initialize_graph_state(resolved: ResolvedProcedureReferences) -> GraphState:
     input_resolved = tuple(item for item in resolved.references if item.path in input_paths)
 
     entities = tuple(item.reference for item in input_resolved)
+    resolved_entities = tuple(item.identity for item in input_resolved)
     metadata = (
         ("snapshot", _INITIAL_SNAPSHOT_ID),
         ("source_procedure_id", resolved.procedure.id),
@@ -29,5 +30,6 @@ def initialize_graph_state(resolved: ResolvedProcedureReferences) -> GraphState:
         snapshot_id=_INITIAL_SNAPSHOT_ID,
         entities=entities,
         derived_entities=(),
+        resolved_entities=resolved_entities,
         metadata=metadata,
     )
