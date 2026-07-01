@@ -1,6 +1,7 @@
 """Reference resolution utilities for ReciGraph."""
 
 from recigraph.resolver.graph_init import initialize_graph_state
+from recigraph.resolver.graph_transformer import DefaultGraphTransformer, GraphTransformer
 from recigraph.resolver.procedure_loop import run_procedure_loop, run_resolved_procedure_loop
 from recigraph.resolver.resolver import (
     ReferenceResolutionError,
@@ -15,6 +16,8 @@ from recigraph.resolver.resolver import (
 from recigraph.resolver.step_engine import apply_step
 
 __all__ = [
+    "DefaultGraphTransformer",
+    "GraphTransformer",
     "ReferenceResolutionError",
     "RegistrySet",
     "ResolutionIssue",
