@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ReciGraph Recipes</title>
+</head>
+<body>
+  <h1>ReciGraph Recipes</h1>
+  <ul>
+  {% for page in pages %}
+    <li><a href="recipes/{{ page.slug }}.html">{{ page.title }}</a></li>
+  {% endfor %}
+  </ul>
+</body>
+</html>

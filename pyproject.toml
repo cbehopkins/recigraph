@@ -15,6 +15,7 @@ readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.13"
 dependencies = [
+    "jinja2>=3.1",
     "pydantic>=2.0",
     "pyyaml>=6.0",
 ]
@@ -127,3 +128,6 @@ skip_covered = false
 # ---------------------------------------------------------------------------
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"recigraph.rendering.html" = ["templates/*.j2"]
