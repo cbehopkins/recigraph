@@ -68,31 +68,42 @@ The compiler resolves these relationships to produce complete recipes.
 
 ---
 
-# Compiler Pipeline
+# Build And Compiler Pipeline
 
-The compiler is organised into distinct phases.
+ReciGraph now separates build orchestration from compiler internals.
+
+The build layer owns end-to-end output generation.
+
+The compiler remains focused on transforming recipe source into Graph IR.
+
+The end-to-end pipeline is:
 
 ```text
-YAML
+Recipe Sources
     │
     ▼
-Loader
+Discovery
     │
     ▼
-Domain Models
+Compiler
     │
     ▼
-Validation
-    │
-    ▼
-Resolution
+Graph IR
     │
     ▼
 View Models
     │
     ▼
 Renderers
+    │
+    ▼
+Output Artifacts
+    │
+    ▼
+Output Directory
 ```
+
+Within that flow, compiler execution is still phase-oriented and deterministic.
 
 Each phase performs one task.
 
@@ -113,6 +124,21 @@ Each compiler phase transforms immutable data into new immutable data.
 ---
 
 # Compiler Phases
+
+## Build Layer
+
+Responsible for orchestration only.
+
+Examples include:
+
+* deterministic recipe source discovery
+* compiler invocation
+* Graph IR collection
+* view-model construction handoff
+* renderer invocation
+* output directory and artifact management
+
+The build layer does not perform parsing, validation, graph transformation or presentation templating.
 
 ## Loader
 

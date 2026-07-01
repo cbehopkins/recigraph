@@ -1,6 +1,7 @@
 Each directory in this structure maps to a particular concern
 
 model        → AST (Pydantic domain models)
+build        → top-level artifact orchestration
 loader       → YAML → AST
 validation   → semantic checks (graph/type rules)
 resolver     → inheritance + composition expansion

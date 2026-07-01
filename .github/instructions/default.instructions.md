@@ -8,6 +8,9 @@ applyTo:
 
 # Recigraph Python Development Defaults
 
+## General Principles
+- This project is in the early development stage. Expect breaking changes and evolving APIs.
+
 ## Runtime And Toolchain
 
 - Use Python 3.13 or newer.
@@ -38,3 +41,9 @@ applyTo:
 - Keep changes minimal and tightly scoped to the request.
 - Avoid broad refactors during bug fixes.
 - If requirements or expected behavior are ambiguous, ask before proceeding.
+
+## Documentation
+- Document all public functions, classes, and modules with docstrings.
+- Project documentation sits under docs/**
+- All tasks should reference the documentation when talking about new feattures or changes.
+- Documentation is the source of truth for the project. Any change that affects the public API or behavior should be reflected in the documentation.
