@@ -17,7 +17,8 @@ applyTo:
 - Use ruff for linting and formatting.
 
 ## Code Quality And Typing
-
+- never from __future__ import annotations <- this is not needed in Python 3.13 and newer.
+- prefer collections.abc over typing for type hints.
 - Keep strict typing enabled.
 - pydantic models are preferred for data validation and serialization.
 

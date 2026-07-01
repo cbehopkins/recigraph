@@ -1,0 +1,13 @@
+id: procedure.vanilla_base
+steps:
+  - id: mix_base
+    action: procedure.mix
+    outputs:
+      - ingredient.base_mix
+  - id: heat_base
+    action: procedure.heat
+    outputs:
+      - ingredient.heated_mix
+inputs:
+  - ingredient.whole_milk
+  - ingredient.sugar

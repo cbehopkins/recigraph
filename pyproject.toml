@@ -12,7 +12,7 @@ name = "recigraph"
 dynamic = ["version"]
 description = "Recipes as structured knowledge, not documents."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "Apache-2.0"
 requires-python = ">=3.13"
 dependencies = [
     "pydantic>=2.0",
@@ -90,6 +90,7 @@ known-first-party = ["recigraph"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+preview = true
 
 # ---------------------------------------------------------------------------
 # Pyright: static type checking

@@ -1,0 +1,17 @@
+id: procedure.substitution_base
+steps:
+  - id: mix_substitution
+    action: procedure.mix
+    inputs:
+      - target: ingredient.whole_milk
+        override:
+          substitutions:
+            - from: ingredient.whole_milk
+              to:
+                ingredients:
+                  - ingredient.oat_milk
+                  - ingredient.sugar
+    outputs:
+      - ingredient.base_mix
+inputs:
+  - ingredient.whole_milk
