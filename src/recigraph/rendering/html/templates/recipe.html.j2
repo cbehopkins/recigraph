@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ page.title }}</title>
+</head>
+<body>
+  <h1>{{ page.title }}</h1>
+  <p>Source: {{ page.source_path.name }}</p>
+  <p>Graph snapshot: {{ page.graph_snapshot_id }}</p>
+  <p>Trace length: {{ page.trace_length }}</p>
+  <h2>Ingredients</h2>
+  <ul>
+  {% for ingredient in page.ingredient_references %}
+    <li>{{ ingredient }}</li>
+  {% endfor %}
+  </ul>
+  <p><a href="../index.html">Back to index</a></p>
+</body>
+</html>

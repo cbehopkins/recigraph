@@ -4,6 +4,12 @@ ReciGraph is a deterministic, single-pass compiler for a YAML-authored recipe DS
 
 The compiler transforms authored domain models into a resolved graph representation and a trace of the transformations that produced it.
 
+The compiler is not the top-level website generation entrypoint.
+
+Top-level orchestration lives in the build layer (`recigraph.build`), which coordinates discovery, compilation, view-model construction, renderer execution and output management.
+
+Renderer architecture details and boundaries are defined in [docs/decisions/adr-010.md](decisions/adr-010.md).
+
 ### Pipeline
 
 The compiler is organised into a fixed linear flow:

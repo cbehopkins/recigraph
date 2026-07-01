@@ -1,0 +1,9 @@
+ingredients:
+  - id: water
+    name: Water
+
+  - id: coffee
+    name: Instant Coffee
+
+  - id: sugar
+    name: Sugar

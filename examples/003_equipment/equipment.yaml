@@ -1,0 +1,6 @@
+equipment:
+  - id: kettle
+    name: Kettle
+
+  - id: mug
+    name: Mug

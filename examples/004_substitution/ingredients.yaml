@@ -1,0 +1,9 @@
+ingredients:
+  - id: whole_milk
+    name: Whole Milk
+
+  - id: oat_milk
+    name: Oat Milk
+
+  - id: sugar
+    name: Sugar

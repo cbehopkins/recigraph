@@ -1,0 +1,18 @@
+procedures:
+  - id: cup_of_tea
+
+    name: Cup of Tea
+
+    inputs:
+      - ingredient.water
+      - ingredient.tea_bag
+
+    steps:
+      - action: procedure.boil
+        inputs:
+          - target: ingredient.water
+
+      - action: procedure.infuse
+        inputs:
+          - target: ingredient.water
+          - target: ingredient.tea_bag

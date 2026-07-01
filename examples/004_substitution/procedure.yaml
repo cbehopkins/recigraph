@@ -1,0 +1,22 @@
+procedures:
+  - id: dairy_free_example
+
+    name: Dairy Free Example
+
+    inputs:
+      - ingredient.whole_milk
+
+    steps:
+      - action: procedure.mix
+
+        inputs:
+          - target: ingredient.whole_milk
+
+            override:
+              substitutions:
+                - from: ingredient.whole_milk
+
+                  to:
+                    ingredients:
+                      - ingredient.oat_milk
+                      - ingredient.sugar

@@ -79,8 +79,9 @@ The project documentation lives in the `docs/` directory.
 Recommended reading order:
 
 1. `architecture.md`
-2. `dsl.md` *(future)*
-3. `compiler.md` *(future)*
+2. `formatting.md`
+3. `dsl.md` *(future)*
+4. `compiler.md` *(future)*
 
 ## Licence
 
